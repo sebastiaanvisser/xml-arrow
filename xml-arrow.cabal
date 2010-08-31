@@ -1,7 +1,7 @@
-Name:             arrow-xml
+Name:             xml-arrow
 Version:          0.0.0
-Description:      List arrows for XML manipulation.
-Synopsis:         List arrows for XML manipulation.
+Description:      Haksell list arrows for XML manipulation.
+Synopsis:         Haksell list arrows for XML manipulation.
 Category:         Data, Generics
 License:          BSD3
 License-file:     LICENSE
@@ -22,3 +22,4 @@ Library
 
   Exposed-modules:  Text.XML.Light.Convert
                     Text.XML.Light.Arrow
+
