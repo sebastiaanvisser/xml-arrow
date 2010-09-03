@@ -27,6 +27,8 @@ module Text.XML.Light.Arrow
 , attr
 , child
 
+, hasAttr
+
 -- * Deep selection.
 
 , deep
@@ -56,6 +58,7 @@ module Text.XML.Light.Arrow
 , elemQ
 , attrQ
 , childQ
+, hasAttrQ
 , toElemQ
 , toAttrQ
 , mkElemQ
@@ -115,7 +118,7 @@ elem :: ArrowList (~>) => String -> Content ~> Content
 elem n = elemQ (unqual n)
 
 attrQ :: (ArrowList (~>), ArrowChoice (~>)) => QName -> Content ~> String
-attrQ q = ifA (isA (==q) . keyQ) value none . attributes
+attrQ q = (isA (==q) . keyQ `guards` value) . attributes
 
 attr :: (ArrowList (~>), ArrowChoice (~>)) => String -> Content ~> String
 attr n = attrQ (unqual n)
@@ -125,6 +128,14 @@ childQ q = elemQ q . children
 
 child :: ArrowList (~>) => String -> Content ~> Content
 child n = childQ (unqual n)
+
+hasAttrQ :: (ArrowList (~>), ArrowChoice (~>))
+         => QName -> Content ~> Content
+hasAttrQ q = filterA (isA (==q) . keyQ . attributes)
+
+hasAttr :: (ArrowList (~>), ArrowChoice (~>))
+         => String -> Content ~> Content
+hasAttr n = hasAttrQ (unqual n)
 
 ----------------
 
