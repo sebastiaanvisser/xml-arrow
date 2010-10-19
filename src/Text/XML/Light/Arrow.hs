@@ -32,6 +32,9 @@ module Text.XML.Light.Arrow
 -- * Deep selection.
 
 , deep
+, deepWhen
+, deepWhenNot
+, deepText
 
 -- * Creation with only arrow components.
 
@@ -45,6 +48,13 @@ module Text.XML.Light.Arrow
 , mkAttr
 , mkAttrValue
 , mkText
+
+-- * Processing child nodes.
+
+, process
+, process1
+, processDeep
+, processText
 
 -- * Parsing / printing.
 
@@ -71,7 +81,6 @@ where
 import Control.Arrow
 import Control.Arrow.ArrowList
 import Control.Category
--- import Data.Either
 import Prelude hiding (elem, (.), id)
 import Text.XML.Light
 
@@ -129,31 +138,36 @@ childQ q = elemQ q . children
 child :: ArrowList (~>) => String -> Content ~> Content
 child n = childQ (unqual n)
 
-hasAttrQ :: (ArrowList (~>), ArrowChoice (~>))
-         => QName -> Content ~> Content
+hasAttrQ :: (ArrowList (~>), ArrowChoice (~>)) => QName -> Content ~> Content
 hasAttrQ q = filterA (isA (==q) . keyQ . attributes)
 
-hasAttr :: (ArrowList (~>), ArrowChoice (~>))
-         => String -> Content ~> Content
+hasAttr :: (ArrowList (~>), ArrowChoice (~>)) => String -> Content ~> Content
 hasAttr n = hasAttrQ (unqual n)
 
 ----------------
 
-deep :: (ArrowList (~>), ArrowPlus (~>)) => (Content ~> c) -> (Content ~> c)
+deep :: (ArrowList (~>), ArrowPlus (~>)) => (Content ~> a) -> (Content ~> a)
 deep e = e <+> deep e . children
+
+deepWhen :: (ArrowList (~>), ArrowPlus (~>), ArrowChoice (~>)) => Content ~> c -> Content ~> a -> Content ~> a
+deepWhen g e = e <+> g `guards` deepWhen g e . children
+
+deepWhenNot :: (ArrowList (~>), ArrowPlus (~>), ArrowChoice (~>)) => Content ~> c -> Content ~> a -> Content ~> a
+deepWhenNot g = deepWhen (notA g)
+
+deepText :: (ArrowPlus (~>), ArrowList (~>)) => Content ~> String
+deepText = arr concat . collect (deep text)
 
 ----------------
 
-toElemQ :: (ArrowPlus (~>), ArrowList (~>))
-        => (a ~> QName) -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
+toElemQ :: (ArrowPlus (~>), ArrowList (~>)) => (a ~> QName) -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
 toElemQ q as cs = proc i ->
   do n <- q -< i
      a <- collect (concatA as) -< i
      c <- collect (concatA cs) -< i
      id -< Elem (Element n a c Nothing)
 
-toElem :: (ArrowPlus (~>), ArrowList (~>))
-       => (a ~> String) -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
+toElem :: (ArrowPlus (~>), ArrowList (~>)) => (a ~> String) -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
 toElem n = toElemQ (arr unqual . n)
 
 toAttrQ :: Arrow (~>) => (a ~> QName) -> (a ~> String) -> a ~> Attr
@@ -195,10 +209,26 @@ mkText t = toText . arr (const t)
 
 ----------------
 
+process :: (ArrowApply (~>), ArrowList (~>), ArrowChoice (~>)) => [Content] ~> [Content] -> Content ~> Content
+process a = processor `when` isElem
+  where processor = proc (Elem (Element n b c l)) ->
+                    do s <- a -< c
+                       id -<< Elem (Element n b s l)
+
+process1 :: (ArrowApply (~>), ArrowList (~>), ArrowChoice (~>)) => Content ~> Content -> Content ~> Content
+process1 a = process (collect (a . unlistA))
+
+processDeep :: (ArrowApply (~>), ArrowList (~>), ArrowChoice (~>)) => Content ~> c -> Content ~> Content -> Content ~> Content
+processDeep c a = ifA c a (process1 (processDeep c a))
+
+processText :: ArrowList (~>) => String ~> String -> Content ~> Content
+processText a = toText . a . text
+
+----------------
+
 printXml :: Arrow (~>) => Content ~> String
 printXml = arr ppContent
 
 parseXml :: ArrowList (~>) => String ~> Content
 parseXml = arrL parseXML
-
 
