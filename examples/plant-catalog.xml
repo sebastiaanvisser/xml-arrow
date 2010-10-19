@@ -139,7 +139,6 @@
 	</plant>
 	<plant>
 		<common>Adder's-Tongue</common>
-		<botanical>Erythronium americanum</botanical>
 		<zone>4</zone>
 		<light>Shade</light>
 		<price>$9.58</price>
@@ -178,7 +177,6 @@
 		<availability>042799</availability>
 	</plant>
 	<plant>
-		<common>Black-Eyed Susan</common>
 		<botanical>Rudbeckia hirta</botanical>
 		<zone>Annual</zone>
 		<light>Sunny</light>

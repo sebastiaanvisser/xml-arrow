@@ -12,11 +12,10 @@ import Safe
 
 main :: IO ()
 main =
-
---   do testVal (plantNames . plants)
---      testXml (plantPrices . plants)
---      testVal (plantNames . expensivePlants)
-     testXml (process1 (elem "common" `orElse` elem "botanical") . expensivePlants)
+  do testVal (plantNames . plants)
+     testXml (plantPrices . plants)
+     testVal (plantNames . expensivePlants)
+     testXml (decreasePrices . expensivePlants)
 
   -- Utility functions:
   where testVal ar = example >>= mapM_ print                 . runListArrow (ar . unlistA)
@@ -41,4 +40,8 @@ expensivePlants = filterA expensive . plants
   where prices    = deepText . child "price"
         expensive = isA (> (9.5 :: Double)) . maybeL . arr parse . prices
         parse     = readMay . tail
+
+decreasePrices :: (ArrowList (~>), ArrowApply (~>), ArrowChoice (~>)) => Content ~> Content
+decreasePrices = processDeep (elem "price") (process1 (processText inc))
+  where inc = arr (show . (+ (-2 :: Double)) . read . tail)
 
