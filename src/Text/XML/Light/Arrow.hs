@@ -230,7 +230,7 @@ processText a = toText . a . text
 -- | When the input is an element, calculate attributes from the
 -- input, and add them to the attributes already on the input element.
 addAttrs :: (ArrowList (~>), ArrowPlus (~>), ArrowChoice (~>)) => (Content ~> Attr) -> Content ~> Content
-addAttrs attrArr = toElem name [concatA [attrArr, attributes]] [children] `A.when` isElem
+addAttrs attrArr = toElem name [concatA [attrArr, attributes]] [children] `when` isElem
 
 ----------------
 
