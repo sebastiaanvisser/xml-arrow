@@ -229,7 +229,7 @@ processText a = toText . a . text
 ----------------
 
 printXml :: Arrow (~>) => Content ~> String
-printXml = arr ppContent
+printXml = arr showContent
 
 parseXml :: ArrowList (~>) => String ~> Content
 parseXml = arrL parseXML
