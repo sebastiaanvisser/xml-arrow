@@ -218,8 +218,10 @@ process a = processor `when` isElem
 process1 :: (ArrowApply (~>), ArrowList (~>), ArrowChoice (~>)) => Content ~> Content -> Content ~> Content
 process1 a = process (collect (a . unlistA))
 
+-- | If the condition holds, apply the arrow and continue processing
+-- the children. Otherwise, do nothing and stop recursing.
 processDeep :: (ArrowApply (~>), ArrowList (~>), ArrowChoice (~>)) => Content ~> c -> Content ~> Content -> Content ~> Content
-processDeep c a = ifA c a (process1 (processDeep c a))
+processDeep c a = (process1 (processDeep c a) . a) `when` c
 
 processText :: ArrowList (~>) => String ~> String -> Content ~> Content
 processText a = toText . a . text
