@@ -157,15 +157,15 @@ deepWhenNot :: (ArrowList (~>), ArrowPlus (~>), ArrowChoice (~>)) => Content ~> 
 deepWhenNot g = deepWhen (notA g)
 
 deepText :: (ArrowPlus (~>), ArrowList (~>)) => Content ~> String
-deepText = arr concat . collect (deep text)
+deepText = arr concat . list (deep text)
 
 ----------------
 
 toElemQ :: (ArrowPlus (~>), ArrowList (~>)) => (a ~> QName) -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
 toElemQ q as cs = proc i ->
   do n <- q -< i
-     a <- collect (concatA as) -< i
-     c <- collect (concatA cs) -< i
+     a <- list (concatA as) -< i
+     c <- list (concatA cs) -< i
      id -< Elem (Element n a c Nothing)
 
 toElem :: (ArrowPlus (~>), ArrowList (~>)) => (a ~> String) -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
@@ -217,7 +217,7 @@ process a = processor `when` isElem
                        id -<< Elem (Element n b s l)
 
 process1 :: (ArrowApply (~>), ArrowList (~>), ArrowChoice (~>)) => Content ~> Content -> Content ~> Content
-process1 a = process (collect (a . unlistA))
+process1 a = process (list (a . unlist))
 
 -- | If the condition holds, apply the arrow and continue processing
 -- the children. Otherwise, do nothing and stop recursing.
