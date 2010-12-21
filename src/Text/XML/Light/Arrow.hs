@@ -121,29 +121,29 @@ isCRef = isA (\c -> case c of CRef {} -> True; _ -> False)
 
 ----------------
 
-elemQ :: ArrowList (~>) => QName -> Content ~> Content
-elemQ q = isA (\(Elem e) -> elName e == q) . isElem
+elemQ :: ArrowList (~>) => (QName -> Bool) -> Content ~> Content
+elemQ f = isA (\(Elem e) -> f (elName e)) . isElem
 
 elem :: ArrowList (~>) => String -> Content ~> Content
-elem n = elemQ (unqual n)
+elem n = elemQ ((==n) . qName)
 
-attrQ :: (ArrowList (~>), ArrowChoice (~>)) => QName -> Content ~> String
-attrQ q = (isA (==q) . keyQ `guards` value) . attributes
+attrQ :: (ArrowList (~>), ArrowChoice (~>)) => (QName -> Bool) -> Content ~> String
+attrQ f = (isA f . keyQ `guards` value) . attributes
 
 attr :: (ArrowList (~>), ArrowChoice (~>)) => String -> Content ~> String
-attr n = attrQ (unqual n)
+attr n = attrQ ((==n) . qName)
 
-childQ :: ArrowList (~>) => QName -> Content ~> Content
-childQ q = elemQ q . children
+childQ :: ArrowList (~>) => (QName -> Bool) -> Content ~> Content
+childQ f = elemQ f . children
 
 child :: ArrowList (~>) => String -> Content ~> Content
-child n = childQ (unqual n)
+child n = childQ ((==n) . qName)
 
-hasAttrQ :: (ArrowList (~>), ArrowChoice (~>)) => QName -> Content ~> Content
-hasAttrQ q = filterA (isA (==q) . keyQ . attributes)
+hasAttrQ :: (ArrowList (~>), ArrowChoice (~>)) => (QName -> Bool) -> Content ~> Content
+hasAttrQ f = filterA (isA f . keyQ . attributes)
 
 hasAttr :: (ArrowList (~>), ArrowChoice (~>)) => String -> Content ~> Content
-hasAttr n = hasAttrQ (unqual n)
+hasAttr n = hasAttrQ ((==n) . qName)
 
 ----------------
 
