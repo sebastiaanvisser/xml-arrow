@@ -87,16 +87,16 @@ import Prelude hiding (elem, (.), id)
 import Text.XML.Light
 
 nameQ :: ArrowList (~>) => Content ~> QName
-nameQ = arr (\(Elem e) -> elName e) . isElem
+nameQ = arr elName . getElem
 
 name :: ArrowList (~>) => Content ~> String
 name = arr qName . nameQ
 
 children :: ArrowList (~>) => Content ~> Content
-children = arrL (\(Elem e) -> elContent e) . isElem
+children = arrL elContent . getElem
 
 attributes :: ArrowList (~>) => Content ~> Attr
-attributes = arrL (\(Elem e) -> elAttribs e) . isElem
+attributes = arrL elAttribs . getElem
 
 keyQ :: Arrow (~>) => Attr ~> QName
 keyQ = arr attrKey
@@ -108,10 +108,18 @@ value :: Arrow (~>) => Attr ~> String
 value = arr attrVal
 
 text :: ArrowList (~>) => Content ~> String
-text = arr (\(Text cd) -> cdData cd) . isText
+text = arr cdData . getText
 
 kind :: ArrowList (~>) => Content ~> CDataKind
-kind = arr (\(Text cd) -> cdVerbatim cd) . isText
+kind = arr cdVerbatim . getText
+
+-- Helpers.
+
+getElem :: ArrowList (~>) => Content ~> Element
+getElem = arrL (\c -> case c of Elem e -> [e]; _ -> [])
+
+getText :: ArrowList (~>) => Content ~> CData
+getText = arrL (\c -> case c of Text t -> [t]; _ -> [])
 
 ----------------
 
@@ -123,7 +131,7 @@ isCRef = isA (\c -> case c of CRef {} -> True; _ -> False)
 ----------------
 
 elemQ :: ArrowList (~>) => (QName -> Bool) -> Content ~> Content
-elemQ f = isA (\(Elem e) -> f (elName e)) . isElem
+elemQ f = arrL (\c -> case c of Elem e | f (elName e) -> [c]; _ -> [])
 
 elem :: ArrowList (~>) => String -> Content ~> Content
 elem n = elemQ ((==n) . qName)
@@ -186,12 +194,10 @@ toText = arr (\t -> Text (CData CDataText t Nothing))
 
 ----------------
 
-mkElemQ :: (ArrowPlus (~>), ArrowList (~>))
-        => QName -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
+mkElemQ :: (ArrowPlus (~>), ArrowList (~>)) => QName -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
 mkElemQ q = toElemQ (arr (const q))
 
-mkElem :: (ArrowPlus (~>), ArrowList (~>))
-       => String -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
+mkElem :: (ArrowPlus (~>), ArrowList (~>)) => String -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
 mkElem n = toElem (arr (const n))
 
 mkAttrQ :: Arrow (~>) => QName -> String ~> Attr
