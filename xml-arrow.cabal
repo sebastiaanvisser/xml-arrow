@@ -1,5 +1,5 @@
 Name:             xml-arrow
-Version:          0.2.3
+Version:          0.2.2
 Description:      Haksell list arrows for XML manipulation.
 Synopsis:         Haksell list arrows for XML manipulation.
 Category:         Data, Generics
@@ -18,5 +18,6 @@ Library
                   , arrow-list >=0.1 && < 0.6
                   , xml ==1.3.*
 
-  Exposed-modules:  Text.XML.Light.Arrow
+  Exposed-modules:  Text.XML.Light.Convert
+                    Text.XML.Light.Arrow
 
