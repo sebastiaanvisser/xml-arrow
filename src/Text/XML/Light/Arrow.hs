@@ -86,6 +86,8 @@ import Control.Category
 import Prelude hiding (elem, (.), id)
 import Text.XML.Light
 
+import qualified Data.Map as Map
+
 nameQ :: ArrowList (~>) => Content ~> QName
 nameQ = arr elName . getElem
 
@@ -173,9 +175,11 @@ deepText = arr concat . list (deep text)
 toElemQ :: (ArrowPlus (~>), ArrowList (~>)) => (a ~> QName) -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
 toElemQ q as cs = proc i ->
   do n <- q -< i
-     a <- list (concatA as) -< i
+     a <- uniques . list (concatA as) -< i
      c <- list (concatA cs) -< i
      id -< Elem (Element n a c Nothing)
+  where
+    uniques = arr (Map.elems . Map.fromListWith const . map (key &&& id))
 
 toElem :: (ArrowPlus (~>), ArrowList (~>)) => (a ~> String) -> [a ~> Attr] -> [a ~> Content] -> a ~> Content
 toElem n = toElemQ (arr unqual . n)
