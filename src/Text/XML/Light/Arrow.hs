@@ -56,7 +56,7 @@ module Text.XML.Light.Arrow
 , processDeep
 , processText
 , processAttrs
-, addAttrs
+, setAttrs
 
 -- * Parsing / printing.
 
@@ -243,8 +243,8 @@ processAttrs attrArr = toElem name [attrArr] [children] `when` isElem
 
 -- | When the input is an element, calculate attributes from the
 -- input, and add them to the attributes already on the input element.
-addAttrs :: (ArrowList (~>), ArrowPlus (~>), ArrowChoice (~>)) => (Content ~> Attr) -> Content ~> Content
-addAttrs attrArr = toElem name [concatA [attrArr, attributes]] [children] `when` isElem
+setAttrs :: (ArrowList (~>), ArrowPlus (~>), ArrowChoice (~>)) => (Content ~> Attr) -> Content ~> Content
+setAttrs attrArr = processAttrs (concatA [attributes, attrArr])
 
 ----------------
 
