@@ -234,8 +234,8 @@ processDeep c a = (process1 (processDeep c a) . a) `when` c
 processText :: ArrowList (~>) => String ~> String -> Content ~> Content
 processText a = toText . a . text
 
-processAttrs :: (ArrowPlus (~>), ArrowList (~>)) => (Attr ~> Attr) -> Content ~> Content
-processAttrs attrArr = toElem name [attrArr . attributes] [children]
+processAttrs :: (ArrowPlus (~>), ArrowList (~>), ArrowChoice (~>)) => (Content ~> Attr) -> Content ~> Content
+processAttrs attrArr = toElem name [attrArr] [children] `when` isElem
 
 -- | When the input is an element, calculate attributes from the
 -- input, and add them to the attributes already on the input element.
